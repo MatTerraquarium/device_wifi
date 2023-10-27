@@ -31,7 +31,9 @@
 #include <dk_buttons_and_leds.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-
+#include <zephyr/device.h>
+#include <zephyr/drivers/sensor.h>
+#include <stdio.h>
 #include <app-common/zap-generated/attributes/Accessors.h>
 
 LOG_MODULE_DECLARE(app, CONFIG_CHIP_APP_LOG_LEVEL);
@@ -86,6 +88,7 @@ app::Clusters::NetworkCommissioning::Instance
 #endif
 
 k_timer sSensorTimer;
+const struct device *const dht22 = DEVICE_DT_GET_ONE(aosong_dht);
 
 void SensorTimerHandler(k_timer *timer)
 {
@@ -159,6 +162,14 @@ CHIP_ERROR AppTask::Init()
 	int ret = dk_buttons_init(ButtonEventHandler);
 	if (ret) {
 		LOG_ERR("dk_buttons_init() failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+
+	/* Initialize level_shifter output enable */
+
+	/* Initialize DHT22 */
+	if (!device_is_ready(dht22)) {
+		LOG_ERR("Device %s is not ready\n", dht22->name);
 		return chip::System::MapErrorZephyr(ret);
 	}
 
@@ -325,8 +336,29 @@ void AppTask::SensorDeactivateHandler(const AppEvent &)
 
 void AppTask::SensorMeasureHandler(const AppEvent &)
 {
-        chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(rand() % 5000));
+		int rc = sensor_sample_fetch(dht22);
+		if (rc != 0) {
+			LOG_ERR("Sensor fetch failed: %d\n", rc);
+			return;
+		}
+
+		struct sensor_value temperature;
+		struct sensor_value humidity;
+
+		rc = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+		if (rc == 0) {
+			rc = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity);
+		}
+		if (rc != 0) {
+			LOG_ERR("get failed: %d\n", rc);
+			return;
+		}
+		sensor_value_to_double(&temperature);
+		sensor_value_to_double(&humidity);
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature));
+        // chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+        //         /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(rand() % 5000));
 }
 
 void AppTask::ChipEventHandler(const ChipDeviceEvent *event, intptr_t /* arg */)
