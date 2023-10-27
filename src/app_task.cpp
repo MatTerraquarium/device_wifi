@@ -356,7 +356,7 @@ void AppTask::SensorMeasureHandler(const AppEvent &)
 		sensor_value_to_double(&temperature);
 		sensor_value_to_double(&humidity);
 		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature));
+                /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
         // chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
         //         /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(rand() % 5000));
 }
