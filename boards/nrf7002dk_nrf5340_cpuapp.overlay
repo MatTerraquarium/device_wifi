@@ -13,7 +13,9 @@
 
     dht22 {
         compatible = "aosong,dht";
+        status = "okay";
         dio-gpios = <&gpio0 5 0>;
+        dht22;
     };
 };
 
