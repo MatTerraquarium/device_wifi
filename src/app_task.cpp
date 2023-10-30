@@ -32,6 +32,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 #include <app-common/zap-generated/attributes/Accessors.h>
@@ -88,7 +89,16 @@ app::Clusters::NetworkCommissioning::Instance
 #endif
 
 k_timer sSensorTimer;
+
+const struct device *const dht11 = DEVICE_DT_GET_ONE(aosong_dht);
 const struct device *const dht22 = DEVICE_DT_GET_ONE(aosong_dht);
+
+static const struct  gpio_dt_spec ls1 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shifter_1), gpios);
+static const struct  gpio_dt_spec ls2 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shifter_2), gpios);
+static const struct  gpio_dt_spec ls3 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shifter_3), gpios);
+
+static const struct  gpio_dt_spec rel1 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_1), gpios);
+static const struct  gpio_dt_spec rel2 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_2), gpios);
 
 void SensorTimerHandler(k_timer *timer)
 {
@@ -166,12 +176,61 @@ CHIP_ERROR AppTask::Init()
 	}
 
 	/* Initialize level_shifter output enable */
+	ret = gpio_is_ready_dt(&ls1);
+	if (!ret) {
+		LOG_ERR("gpio_is_ready_dt(&ls1) failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+	gpio_pin_configure_dt(&ls1, GPIO_OUTPUT_INACTIVE);
+	ret = gpio_is_ready_dt(&ls2);
+	if (!ret) {
+		LOG_ERR("gpio_is_ready_dt(&ls2) failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+	gpio_pin_configure_dt(&ls2, GPIO_OUTPUT_INACTIVE);
+	ret = gpio_is_ready_dt(&ls3);
+	if (!ret) {
+		LOG_ERR("gpio_is_ready_dt(&ls3) failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+	gpio_pin_configure_dt(&ls3, GPIO_OUTPUT_INACTIVE);
+
+	/* Initialize RELAYs */
+	ret = gpio_is_ready_dt(&rel1);
+	if (!ret) {
+		LOG_ERR("gpio_is_ready_dt(&rel1) failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+	gpio_pin_configure_dt(&rel1, GPIO_OUTPUT_INACTIVE);
+	ret = gpio_is_ready_dt(&rel2);
+	if (!ret) {
+		LOG_ERR("gpio_is_ready_dt(&rel2) failed");
+		return chip::System::MapErrorZephyr(ret);
+	}
+	gpio_pin_configure_dt(&rel2, GPIO_OUTPUT_INACTIVE);
+
+	/* Initialize DHT11 */
+	gpio_pin_set_dt(&ls2, 1);
+	ret = device_is_ready(dht11);
+	if (!ret) {
+		LOG_ERR("Device %s is not ready\n", dht11->name);
+		return chip::System::MapErrorZephyr(ret);
+	}
 
 	/* Initialize DHT22 */
-	if (!device_is_ready(dht22)) {
+	gpio_pin_set_dt(&ls3, 1);
+	ret = device_is_ready(dht22);
+	if (!ret) {
 		LOG_ERR("Device %s is not ready\n", dht22->name);
 		return chip::System::MapErrorZephyr(ret);
 	}
+
+	/* Test Realays */
+	gpio_pin_toggle_dt(&rel1);
+	gpio_pin_toggle_dt(&rel1);
+	gpio_pin_toggle_dt(&rel2);
+	gpio_pin_toggle_dt(&rel2);
+
 
 	/* Initialize function timer */
 	k_timer_init(&sFunctionTimer, &AppTask::FunctionTimerTimeoutCallback, nullptr);
