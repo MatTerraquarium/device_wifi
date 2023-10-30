@@ -95,7 +95,7 @@ k_timer sSensorTimer;
 const struct device *const dht11 = DEVICE_DT_GET_ONE(aosong_dht);
 const struct device *const dht22 = DEVICE_DT_GET_ONE(aosong_dht);
 
-const struct device *const ds18b20 = DEVICE_DT_GET_ANY(maxim_ds18b20);
+//const struct device *const ds18b20 = DEVICE_DT_GET_ANY(maxim_ds18b20);
 
 static const struct  gpio_dt_spec ls1 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shifter_1), gpios);
 static const struct  gpio_dt_spec ls2 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shifter_2), gpios);
@@ -103,8 +103,8 @@ static const struct  gpio_dt_spec ls3 = GPIO_DT_SPEC_GET(DT_NODELABEL(level_shif
 
 static const struct  gpio_dt_spec rel1 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_1), gpios);
 static const struct  gpio_dt_spec rel2 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_2), gpios);
-static const struct  gpio_dt_spec rel3 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_3), gpios);
-static const struct  gpio_dt_spec rel4 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_4), gpios);
+//static const struct  gpio_dt_spec rel3 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_3), gpios);
+//static const struct  gpio_dt_spec rel4 = GPIO_DT_SPEC_GET(DT_NODELABEL(relay_4), gpios);
 
 static const struct  pwm_dt_spec servo = PWM_DT_SPEC_GET(DT_NODELABEL(servo_1));
 
@@ -220,6 +220,20 @@ CHIP_ERROR AppTask::Init()
 	}
 	gpio_pin_configure_dt(&rel2, GPIO_OUTPUT_INACTIVE);
 
+//	ret = gpio_is_ready_dt(&rel3);
+//	if (!ret) {
+//		LOG_ERR("gpio_is_ready_dt(&rel3) failed");
+//		return chip::System::MapErrorZephyr(ret);
+//	}
+//	gpio_pin_configure_dt(&rel3, GPIO_OUTPUT_INACTIVE);
+
+//	ret = gpio_is_ready_dt(&rel4);
+//	if (!ret) {
+//		LOG_ERR("gpio_is_ready_dt(&rel4) failed");
+//		return chip::System::MapErrorZephyr(ret);
+//	}
+//	gpio_pin_configure_dt(&rel4, GPIO_OUTPUT_INACTIVE);
+
 	/* Initialize SERVO */
 	ret = pwm_is_ready_dt(&servo);
 	if (!ret) {
@@ -242,11 +256,11 @@ CHIP_ERROR AppTask::Init()
 	}
 
 	/* Initialize DS18B20 */
-	ret = device_is_ready(ds18b20);
-	if (!ret) {
-		LOG_ERR("Device %s is not ready\n", ds18b20->name);
-		return chip::System::MapErrorZephyr(ret);
-	}
+//	ret = device_is_ready(ds18b20);
+//	if (!ret) {
+//		LOG_ERR("Device %s is not ready\n", ds18b20->name);
+//		return chip::System::MapErrorZephyr(ret);
+//	}
 
 	/* Test Level Shifters */
 	gpio_pin_set_dt(&ls1, 1);
@@ -258,10 +272,10 @@ CHIP_ERROR AppTask::Init()
 	gpio_pin_toggle_dt(&rel1);
 	gpio_pin_toggle_dt(&rel2);
 	gpio_pin_toggle_dt(&rel2);
-	gpio_pin_toggle_dt(&rel3);
-	gpio_pin_toggle_dt(&rel3);
-	gpio_pin_toggle_dt(&rel4);
-	gpio_pin_toggle_dt(&rel4);
+//	gpio_pin_toggle_dt(&rel3);
+//	gpio_pin_toggle_dt(&rel3);
+//	gpio_pin_toggle_dt(&rel4);
+//	gpio_pin_toggle_dt(&rel4);
 
 	/* Test Servo */
 	ret = pwm_set_dt(&servo, PWM_SEC(1U), PWM_SEC(1U) / 2U);
@@ -306,18 +320,18 @@ CHIP_ERROR AppTask::Init()
 	double humidity_dht22_d = sensor_value_to_double(&humidity_dht22);
 
 	/* Test DS18B20 */
-	struct sensor_value temperature_ds18b20;
-	ret = sensor_sample_fetch(ds18b20);
-		if (ret != 0) {
-		LOG_ERR("Sensor fetch failed: %d\n", ret);
-		return chip::System::MapErrorZephyr(ret);
-	}
-	ret = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature_ds18b20);
-	if (ret != 0) {
-		LOG_ERR("get failed: %d\n", ret);
-		return chip::System::MapErrorZephyr(ret);
-	}
-	double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
+//	struct sensor_value temperature_ds18b20;
+//	ret = sensor_sample_fetch(ds18b20);
+//		if (ret != 0) {
+//		LOG_ERR("Sensor fetch failed: %d\n", ret);
+//		return chip::System::MapErrorZephyr(ret);
+//	}
+//	ret = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature_ds18b20);
+//	if (ret != 0) {
+//		LOG_ERR("get failed: %d\n", ret);
+//		return chip::System::MapErrorZephyr(ret);
+//	}
+//	double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
 
 
 

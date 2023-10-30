@@ -56,6 +56,7 @@
             gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
             label = "Ralay 2";
         };
+/*
         relay_3: relay_03 {
             status = "okay";
             gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
@@ -66,6 +67,7 @@
             gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
             label = "Ralay 4";
         };
+*/
     };
 
 	pwmleds {
@@ -77,10 +79,10 @@
 };
 
 &pinctrl {
+/*
 	uart1_default: uart1_default {
         group1 {
             psels = <NRF_PSEL(UART_TX, 0, 2)>;
-            /* max. 5mA drive strength: */
             nordic,drive-mode = <NRF_DRIVE_H0D1>;
         };
 		group2 {
@@ -95,7 +97,7 @@
 			low-power-enable;
 		};
 	};
-
+*/
 	pwm1_default: pwm1_default {
 		group1 {
 			psels = <NRF_PSEL(PWM_OUT0, 0, 0)>;
@@ -120,6 +122,7 @@
 	pinctrl-names = "default";
 };
 
+/*
 &arduino_serial {
 	status = "okay";
 	w1_0: w1-zephyr-serial-0 {
@@ -135,3 +138,4 @@
 		};
 	};
 };
+*/
