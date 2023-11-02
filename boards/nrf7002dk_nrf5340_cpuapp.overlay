@@ -12,36 +12,57 @@
 		nordic,pm-ext-flash = &mx25r64;
 	};
 
-    dht11: dht11_1 {
-        compatible = "aosong,dht";
-        status = "okay";
-        dio-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
-    };
-    
-    dht22: dht22_1 {
-        compatible = "aosong,dht";
-        status = "okay";
-        dio-gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
-        dht22;
-    };
+	aliases {
+		level-shifter1 = &level_shifter1;
+		level-shifter2 = &level_shifter2;
+		level-shifter3 = &level_shifter3;
+		servo = &servo0;
+		dht11 = &dht110;
+		dht22 = &dht220;
+//		ds18b20 = &ds18b200;
+		relay1 = &relay_1;
+		relay2 = &relay_2;
+		relay3 = &relay_3;
+		relay4 = &relay_4;
+	};
 
-    level_shifters {
+	level_shifters {
         compatible = "gpio-leds";
-        level_shifter_1: level_shifter_01 {
+        level_shifter1: level_shifter_1 {
             status = "okay";
             gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
             label = "Level Shifter 1 - Output Enable";
         };
-        level_shifter_2: level_shifter_02 {
+        level_shifter2: level_shifter_2 {
             status = "okay";
             gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
             label = "Level Shifter 2 - Output Enable";
         };
-        level_shifter_3: level_shifter_03 {
+        level_shifter3: level_shifter_3 {
             status = "okay";
             gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
             label = "Level Shifter 3 - Output Enable";
         };
+    };
+
+	servo0: servo_0 {
+		compatible = "pwm-servo";
+		pwms = <&pwm1 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		min-pulse = <PWM_USEC(700)>;
+		max-pulse = <PWM_USEC(2500)>;
+	};
+
+	dht110: dht11_0 {
+		compatible = "aosong,dht";
+		status = "okay";
+		dio-gpios = <&gpio1 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+	};
+    
+    dht220: dht22_0 {
+        compatible = "aosong,dht";
+        status = "okay";
+        dio-gpios = <&gpio0 5 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+        dht22;
     };
 
     relays {
@@ -56,7 +77,7 @@
             gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
             label = "Ralay 2";
         };
-/*
+
         relay_3: relay_03 {
             status = "okay";
             gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
@@ -67,18 +88,22 @@
             gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
             label = "Ralay 4";
         };
-*/
     };
-
-	pwmleds {
-		servo_1: servo_01 {
-            status = "okay";
-			pwms = <&pwm1 0 500 PWM_POLARITY_INVERTED>;
-		};
-	};
 };
 
 &pinctrl {
+	pwm1_default: pwm1_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 0)>;
+		};
+	};
+    pwm1_sleep: pwm1_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 0)>;
+            low-power-enable;
+		};
+	};
+
 /*
 	uart1_default: uart1_default {
         group1 {
@@ -98,17 +123,6 @@
 		};
 	};
 */
-	pwm1_default: pwm1_default {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 0)>;
-		};
-	};
-    pwm1_sleep: pwm1_sleep {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 0)>;
-            low-power-enable;
-		};
-	};
 };
 
 /* Set IPC thread priority to the highest value to not collide with other threads. */
@@ -119,7 +133,8 @@
 &pwm1 {
 	status = "okay";
 	pinctrl-0 = <&pwm1_default>;
-	pinctrl-names = "default";
+	pinctrl-1 = <&pwm1_sleep>;
+	pinctrl-names = "default", "sleep";
 };
 
 /*
@@ -130,7 +145,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		status = "okay";
-		ds18b20 {
+		ds18b200: ds18b20_0 {
 			compatible = "maxim,ds18b20";
 			family-code = <0x28>;
 			resolution = <12>;
