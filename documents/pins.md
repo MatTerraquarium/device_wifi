@@ -1,38 +1,29 @@
 
-# BOARD AT WORK:
+# nRF7002-DK PROTOTYPE:
 
 LEVEL_SHIFTER_1 (TXB0108)
-  - OUTPUT_ENABLE: P0.06
-  - TEMPERATURE + HUMIDITY SENSOR (DHT22 / am2302)
-    - SENSOR DATA: P0.05
-  - TEMPERATURE + HUMIDITY SENSOR (DHT11)
-    - SENSOR DATA: P0.04
-  - TEMPERATURE SENSOR (DS18B20)
-    - SENSOR DATA: P0.02/P0.03
+  - OUTPUT_ENABLE: P1.05 (BLUE)
+  - TEMPERATURE + HUMIDITY SENSOR (DHT11) [ COLD ZONE TEMPERATURE AND HUMIDUTY ]
+    - SENSOR DATA: P1.00 (ORANGE)
+  - TEMPERATURE + HUMIDITY SENSOR (DHT22 / am2302) [ HOT ZONE TEMPERATURE AND HUMIDUTY ]
+    - SENSOR DATA: P1.01 (GREEN)
+  - TEMPERATURE SENSOR (DS18B20) [ WATER TEMPERATURE ]
+    - SENSOR DATA: P1.04 (YELLOW)
 
 LEVEL_SHIFTER_2 (TXB0108)
-  - OUTPUT_ENABLE: P1.15
+  - OUTPUT_ENABLE: P1.14 (GREEN)
   - MODULO 4 RELE'
-    - RELE' 1: P1.11
-    - RELE' 2: P1.12
-    - RELE' 3: P1.13
-    - RELE' 4: P1.14
+    - RELE' 4: 
+      - IN4 - P1.13 (YELLOW) [ HOT-SPOT LAMP ]
+    - RELE' 3: 
+      - IN3 - P1.12 (WHITE) [ UVB LAMP ]
+    - RELE' 2: 
+      - IN2 - P1.11 (GRAY) [ WATER FILER PUMP ]
+    - RELE' 1: 
+      - IN1 - P1.10 (PURPLE) [ WATER HEATER ]
 
 LEVEL_SHIFTER_3 (TXB0108)
-  - OUTPUT_ENABLE: P0.01
+  - OUTPUT_ENABLE: P1.03 (YELLOW)
   - PWM SERVO MOTORE
-    - PWM OUT: P0.00
+    - PWM OUT: P1.02 (ORANGE) [ AUTOMATIC FEEDER ]
 
-
-
-
-[device 1]: sensore t-h zona calda
-[device 2]: sensore t-h zona fredda
-[device 3]: sensore t acqua
-
-[relay 1]: luce hot-spot
-[relay 2]: luce uvb
-[relay 3]: filtro
-[relay 4]: riscaldatore
-
-[pwm servo]: feeder cibo
