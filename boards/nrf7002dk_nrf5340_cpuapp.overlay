@@ -5,7 +5,6 @@
  */
 
 #include <zephyr/dt-bindings/ipc_service/static_vrings.h>
-#include "serial_overlay.dtsi"
 
 / {
 	chosen {
