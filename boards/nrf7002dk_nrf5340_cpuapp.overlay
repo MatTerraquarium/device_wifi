@@ -13,8 +13,6 @@
 
 	aliases {
 		level-shifter1 = &level_shifter1;
-		level-shifter2 = &level_shifter2;
-		level-shifter3 = &level_shifter3;
 		relay1 = &relay_1;
 		relay2 = &relay_2;
 		relay3 = &relay_3;
@@ -29,18 +27,8 @@
         compatible = "gpio-leds";
         level_shifter1: level_shifter_1 {
             status = "okay";
-			gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
-            label = "Level Shifter 1 (Sensors) - Output Enable";
-        };
-        level_shifter2: level_shifter_2 {
-            status = "okay";
 			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
             label = "Level Shifter 2 (Relays) - Output Enable";
-        };
-        level_shifter3: level_shifter_3 {
-            status = "okay";
-			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
-            label = "Level Shifter 3 (Feeder) - Output Enable";
         };
     };
 
@@ -85,7 +73,7 @@
 		compatible = "pwm-servo";
 		pwms = <&pwm1 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
 		min-pulse = <PWM_USEC(1000)>;
-		max-pulse = <PWM_USEC(2000)>;
+		max-pulse = <PWM_USEC(1390)>;
 	};
 };
 

@@ -93,8 +93,6 @@ app::Clusters::NetworkCommissioning::Instance
 k_timer sSensorTimer;
 
 static const struct gpio_dt_spec ls1 = GPIO_DT_SPEC_GET(DT_ALIAS(level_shifter1), gpios);
-static const struct gpio_dt_spec ls2 = GPIO_DT_SPEC_GET(DT_ALIAS(level_shifter2), gpios);
-static const struct gpio_dt_spec ls3 = GPIO_DT_SPEC_GET(DT_ALIAS(level_shifter3), gpios);
 
 static const struct pwm_dt_spec servo = PWM_DT_SPEC_GET(DT_ALIAS(servo));
 static const uint32_t min_pulse = DT_PROP(DT_ALIAS(servo), min_pulse);
@@ -103,7 +101,7 @@ static const uint32_t max_pulse = DT_PROP(DT_ALIAS(servo), max_pulse);
 static const struct device *const dht11 = DEVICE_DT_GET(DT_ALIAS(dht11));
 static const struct device *const dht22 = DEVICE_DT_GET(DT_ALIAS(dht22));
 
-//static const struct device *const ds18b20 = DEVICE_DT_GET(DT_ALIAS(ds18b20));
+static const struct device *const ds18b20 = DEVICE_DT_GET(DT_ALIAS(ds18b20));
 
 static const struct  gpio_dt_spec rel1 = GPIO_DT_SPEC_GET(DT_ALIAS(relay1), gpios);
 static const struct  gpio_dt_spec rel2 = GPIO_DT_SPEC_GET(DT_ALIAS(relay2), gpios);
@@ -193,20 +191,6 @@ CHIP_ERROR AppTask::Init()
 	}
 	gpio_pin_configure_dt(&ls1, GPIO_OUTPUT_INACTIVE);
 
-	ret = gpio_is_ready_dt(&ls2);
-	if (!ret) {
-		LOG_ERR("gpio_is_ready_dt(&ls2) failed");
-		return chip::System::MapErrorZephyr(ret);
-	}
-	gpio_pin_configure_dt(&ls2, GPIO_OUTPUT_INACTIVE);
-
-	ret = gpio_is_ready_dt(&ls3);
-	if (!ret) {
-		LOG_ERR("gpio_is_ready_dt(&ls3) failed");
-		return chip::System::MapErrorZephyr(ret);
-	}
-	gpio_pin_configure_dt(&ls3, GPIO_OUTPUT_INACTIVE);
-
 	/* Initialize SERVO */
 	ret = device_is_ready(servo.dev);
 	if (!ret) {
@@ -229,11 +213,11 @@ CHIP_ERROR AppTask::Init()
 	}
 
 	/* Initialize DS18B20 */
-//	ret = device_is_ready(ds18b20);
-//	if (!ret) {
-//		LOG_ERR("Device %s is not ready\n", ds18b20->name);
-//		return chip::System::MapErrorZephyr(ret);
-//	}
+	ret = device_is_ready(ds18b20);
+	if (!ret) {
+		LOG_ERR("Device %s is not ready\n", ds18b20->name);
+		return chip::System::MapErrorZephyr(ret);
+	}
 
 	/* Initialize RELAYs */
 	ret = gpio_is_ready_dt(&rel1);
@@ -266,8 +250,6 @@ CHIP_ERROR AppTask::Init()
 
 	/* Test Level Shifters */
 	gpio_pin_set_dt(&ls1, 1);
-	gpio_pin_set_dt(&ls2, 1);
-	gpio_pin_set_dt(&ls3, 1);
 
 	/* Test Realays */
 	gpio_pin_toggle_dt(&rel1);
@@ -282,11 +264,13 @@ CHIP_ERROR AppTask::Init()
 	/* Test Servo */
 	uint32_t pulse_width = (uint32_t)((min_pulse + max_pulse) / 2);
 	ret = pwm_set_pulse_dt(&servo, pulse_width);
+	k_sleep(K_SECONDS(1));
 	ret = pwm_set_pulse_dt(&servo, 0);
 
 	/* Test DHT11 */
 	struct sensor_value temperature_dht11;
 	struct sensor_value humidity_dht11;
+	k_sleep(K_SECONDS(1));
 	ret = sensor_sample_fetch(dht11);
 	if (ret != 0) {
 		LOG_ERR("Sensor fetch failed: %d\n", ret);
@@ -306,6 +290,7 @@ CHIP_ERROR AppTask::Init()
 	/* Test DHT22 */
 	struct sensor_value temperature_dht22;
 	struct sensor_value humidity_dht22;
+	k_sleep(K_SECONDS(1));
 	ret = sensor_sample_fetch(dht22);
 	if (ret != 0) {
 		LOG_ERR("Sensor fetch failed: %d\n", ret);
@@ -323,18 +308,19 @@ CHIP_ERROR AppTask::Init()
 	double humidity_dht22_d = sensor_value_to_double(&humidity_dht22);
 
 	/* Test DS18B20 */
-//	struct sensor_value temperature_ds18b20;
-//	ret = sensor_sample_fetch(ds18b20);
-//		if (ret != 0) {
-//		LOG_ERR("Sensor fetch failed: %d\n", ret);
-//		return chip::System::MapErrorZephyr(ret);
-//	}
-//	ret = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature_ds18b20);
-//	if (ret != 0) {
-//		LOG_ERR("get failed: %d\n", ret);
-//		return chip::System::MapErrorZephyr(ret);
-//	}
-//	double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
+	struct sensor_value temperature_ds18b20;
+	k_sleep(K_SECONDS(1));
+	ret = sensor_sample_fetch(ds18b20);
+		if (ret != 0) {
+		LOG_ERR("Sensor fetch failed: %d\n", ret);
+		return chip::System::MapErrorZephyr(ret);
+	}
+	ret = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature_ds18b20);
+	if (ret != 0) {
+		LOG_ERR("get failed: %d\n", ret);
+		return chip::System::MapErrorZephyr(ret);
+	}
+	double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
 
 
 
