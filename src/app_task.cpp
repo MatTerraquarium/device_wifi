@@ -91,6 +91,7 @@ app::Clusters::NetworkCommissioning::Instance
 #endif
 
 k_timer sSensorTimer;
+k_timer sFeederMonoTimer;
 
 static const struct gpio_dt_spec ls1 = GPIO_DT_SPEC_GET(DT_ALIAS(level_shifter1), gpios);
 
@@ -110,20 +111,28 @@ static const struct  gpio_dt_spec rel4 = GPIO_DT_SPEC_GET(DT_ALIAS(relay4), gpio
 
 void SensorTimerHandler(k_timer *timer)
 {
-        AppEvent event;
-        event.Type = AppEventType::SensorMeasure;
-        event.Handler = AppTask::SensorMeasureHandler;
-        AppTask::Instance().PostEvent(event);
+        AppEvent hot_ev, cold_ev, water_ev;
+        
+	hot_ev.Type = AppEventType::HotSensorMeasure;
+        hot_ev.Handler = AppTask::HotSensorMeasureHandler;
+        AppTask::Instance().PostEvent(hot_ev);
+		
+	cold_ev.Type = AppEventType::ColdSensorMeasure;
+        cold_ev.Handler = AppTask::ColdSensorMeasureHandler;
+        AppTask::Instance().PostEvent(cold_ev);
+		
+	water_ev.Type = AppEventType::WaterTempSensorMeasure;
+        water_ev.Handler = AppTask::WaterTempSensorMeasureHandler;
+        AppTask::Instance().PostEvent(water_ev);
 }
 
-void StartSensorTimer(uint32_t aTimeoutMs)
+void FeederMonoTimerHandler(k_timer *timer)
 {
-        k_timer_start(&sSensorTimer, K_MSEC(aTimeoutMs), K_MSEC(aTimeoutMs));
-}
-
-void StopSensorTimer()
-{
-        k_timer_stop(&sSensorTimer);
+        AppEvent feeder_ev;
+        
+	feeder_ev.Type = AppEventType::FeederDeactivate;
+        feeder_ev.Handler = AppTask::FeederDeactivateHandler;
+        AppTask::Instance().PostEvent(feeder_ev);
 }
 
 CHIP_ERROR AppTask::Init()
@@ -248,6 +257,7 @@ CHIP_ERROR AppTask::Init()
 	}
 	gpio_pin_configure_dt(&rel4, GPIO_OUTPUT_INACTIVE);
 
+#if 0
 	/* Test Level Shifters */
 	gpio_pin_set_dt(&ls1, 1);
 
@@ -321,8 +331,7 @@ CHIP_ERROR AppTask::Init()
 		return chip::System::MapErrorZephyr(ret);
 	}
 	double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
-
-
+#endif
 
 	/* Initialize function timer */
 	k_timer_init(&sFunctionTimer, &AppTask::FunctionTimerTimeoutCallback, nullptr);
@@ -361,6 +370,10 @@ CHIP_ERROR AppTask::Init()
 
 	k_timer_init(&sSensorTimer, &SensorTimerHandler, nullptr);
 	k_timer_user_data_set(&sSensorTimer, this);
+	k_timer_start(&sSensorTimer, K_MSEC(2000), K_MSEC(2000));
+
+	k_timer_init(&sFeederMonoTimer, &SensorTimerHandler, nullptr);
+	k_timer_user_data_set(&sFeederMonoTimer, this);
 
 	return CHIP_NO_ERROR;
 }
@@ -475,42 +488,80 @@ void AppTask::UpdateStatusLED()
 	}
 }
 
-void AppTask::SensorActivateHandler(const AppEvent &)
+void AppTask::HotLampActivateHandler(const AppEvent &)
 {
-        StartSensorTimer(500);
+        gpio_pin_set_dt(&rel1, 1);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 2, /* On/Off state */ true);
 }
 
-void AppTask::SensorDeactivateHandler(const AppEvent &)
+void AppTask::HotLampDeactivateHandler(const AppEvent &)
 {
-        StopSensorTimer();
+        gpio_pin_set_dt(&rel1, 0);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 2, /* On/Off state */ false);
 }
 
-void AppTask::SensorMeasureHandler(const AppEvent &)
+void AppTask::UvbLampActivateHandler(const AppEvent &)
 {
-		int rc = sensor_sample_fetch(dht22);
-		if (rc != 0) {
-			LOG_ERR("Sensor fetch failed: %d\n", rc);
-			return;
-		}
-
-		struct sensor_value temperature;
-		struct sensor_value humidity;
-
-		rc = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
-		if (rc == 0) {
-			rc = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity);
-		}
-		if (rc != 0) {
-			LOG_ERR("get failed: %d\n", rc);
-			return;
-		}
-		sensor_value_to_double(&temperature);
-		sensor_value_to_double(&humidity);
-		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
-        // chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-        //         /* endpoint ID */ 1, /* temperature in 0.01*C */ int16_t(rand() % 5000));
+        gpio_pin_set_dt(&rel2, 1);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 3, /* On/Off state */ true);
 }
+
+void AppTask::UvbLampDeactivateHandler(const AppEvent &)
+{
+        gpio_pin_set_dt(&rel2, 0);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 3, /* On/Off state */ false);
+}
+
+void AppTask::HeaterActivateHandler(const AppEvent &)
+{
+        gpio_pin_set_dt(&rel3, 1);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 4, /* On/Off state */ true);
+}
+
+void AppTask::HeaterDeactivateHandler(const AppEvent &)
+{
+        gpio_pin_set_dt(&rel3, 0);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 4, /* On/Off state */ false);
+}
+
+void AppTask::FilterActivateHandler(const AppEvent &)
+{
+        gpio_pin_set_dt(&rel4, 1);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 5, /* On/Off state */ true);
+}
+
+void AppTask::FilterDeactivateHandler(const AppEvent &)
+{
+        gpio_pin_set_dt(&rel4, 0);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 5, /* On/Off state */ false);
+}
+
+void AppTask::FeederActivateHandler(const AppEvent &)
+{
+        int ret;
+        ret = pwm_set_pulse_dt(&servo, (uint32_t)((min_pulse + max_pulse) / 2));
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 6, /* On/Off state */ true);
+        k_timer_start(&sFeederMonoTimer, K_MSEC(3000), K_MSEC(0));
+}
+
+void AppTask::FeederDeactivateHandler(const AppEvent &)
+{
+        int ret;
+        ret = pwm_set_pulse_dt(&servo, 0);
+        k_timer_stop(&sFeederMonoTimer);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
+                /* endpoint ID */ 6, /* On/Off state */ false);
+}
+
 
 void AppTask::ChipEventHandler(const ChipDeviceEvent *event, intptr_t /* arg */)
 {
@@ -569,4 +620,83 @@ void AppTask::DispatchEvent(const AppEvent &event)
 	} else {
 		LOG_INF("Event received with no handler. Dropping event.");
 	}
+}
+
+
+
+
+
+
+void AppTask::HotSensorMeasureHandler(const AppEvent &)
+{
+		int rc = sensor_sample_fetch(dht22);
+		if (rc != 0) {
+			LOG_ERR("Sensor fetch failed: %d\n", rc);
+			return;
+		}
+
+		struct sensor_value temperature;
+		struct sensor_value humidity;
+
+		rc = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+		if (rc == 0) {
+			rc = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity);
+		}
+		if (rc != 0) {
+			LOG_ERR("get failed: %d\n", rc);
+			return;
+		}
+		sensor_value_to_double(&temperature);
+		sensor_value_to_double(&humidity);
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 7, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 8, /* humidity */ int16_t(sensor_value_to_double(&humidity)));
+}
+
+void AppTask::ColdSensorMeasureHandler(const AppEvent &)
+{
+		int rc = sensor_sample_fetch(dht11);
+		if (rc != 0) {
+			LOG_ERR("Sensor fetch failed: %d\n", rc);
+			return;
+		}
+
+		struct sensor_value temperature;
+		struct sensor_value humidity;
+
+		rc = sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+		if (rc == 0) {
+			rc = sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
+		}
+		if (rc != 0) {
+			LOG_ERR("get failed: %d\n", rc);
+			return;
+		}
+		sensor_value_to_double(&temperature);
+		sensor_value_to_double(&humidity);
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 9, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 10, /* humidity */ int16_t(sensor_value_to_double(&humidity)));
+}
+
+void AppTask::WaterTempSensorMeasureHandler(const AppEvent &)
+{
+		int rc = sensor_sample_fetch(ds18b20);
+		if (rc != 0) {
+			LOG_ERR("Sensor fetch failed: %d\n", rc);
+			return;
+		}
+
+		struct sensor_value temperature;
+
+		rc = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
+		if (rc != 0) {
+			LOG_ERR("get failed: %d\n", rc);
+			return;
+		}
+		sensor_value_to_double(&temperature);
+		chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+                /* endpoint ID */ 11, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
 }

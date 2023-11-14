@@ -12,7 +12,20 @@
 
 class LEDWidget;
 
-enum class AppEventType : uint8_t { None = 0, Button, ButtonPushed, ButtonReleased, Timer, UpdateLedState, SensorActivate, SensorDeactivate, SensorMeasure };
+enum class AppEventType : uint8_t { None = 0, Button, ButtonPushed, ButtonReleased, Timer, UpdateLedState, 
+									HotLampActivate, 
+									HotLampDeactivate, 
+									UvbLampActivate, 
+									UvbLampDeactivate, 
+									HeaterActivate, 
+									HeaterDeactivate, 
+									FilterActivate, 
+									FilterDeactivate, 
+									FeederActivate, 
+									FeederDeactivate, 
+									HotSensorMeasure, 
+									ColdSensorMeasure, 
+									WaterTempSensorMeasure, };
 
 enum class FunctionEvent : uint8_t { NoneSelected = 0, FactoryReset };
 
@@ -28,6 +41,11 @@ struct AppEvent {
 		struct {
 			LEDWidget *LedWidget;
 		} UpdateLedStateEvent;
+		
+		struct {
+			uint8_t PinNo;
+			uint8_t Action;
+		} UpdateHotLampEvent;
 	};
 
 	AppEventType Type{ AppEventType::None };

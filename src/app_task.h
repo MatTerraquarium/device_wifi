@@ -31,9 +31,20 @@ public:
 
 	static void PostEvent(const AppEvent &event);
 
-	static void SensorActivateHandler(const AppEvent &);
-	static void SensorDeactivateHandler(const AppEvent &);
-	static void SensorMeasureHandler(const AppEvent &);
+	static void HotSensorMeasureHandler(const AppEvent &);
+	static void ColdSensorMeasureHandler(const AppEvent &);
+	static void WaterTempSensorMeasureHandler(const AppEvent &);
+
+	static void HotLampActivateHandler(const AppEvent &);
+	static void HotLampDeactivateHandler(const AppEvent &);
+	static void UvbLampActivateHandler(const AppEvent &);
+	static void UvbLampDeactivateHandler(const AppEvent &);
+	static void HeaterActivateHandler(const AppEvent &);
+	static void HeaterDeactivateHandler(const AppEvent &);
+	static void FilterActivateHandler(const AppEvent &);
+	static void FilterDeactivateHandler(const AppEvent &);
+	static void FeederActivateHandler(const AppEvent &);
+	static void FeederDeactivateHandler(const AppEvent &);
 
 private:
 	CHIP_ERROR Init();
