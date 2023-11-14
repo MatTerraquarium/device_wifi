@@ -20,7 +20,10 @@
 #pragma once
 
 void MatterIdentifyPluginServerInitCallback();
+void MatterGroupsPluginServerInitCallback();
+void MatterScenesPluginServerInitCallback();
 void MatterOnOffPluginServerInitCallback();
+void MatterLevelControlPluginServerInitCallback();
 void MatterDescriptorPluginServerInitCallback();
 void MatterAccessControlPluginServerInitCallback();
 void MatterBasicInformationPluginServerInitCallback();
@@ -35,10 +38,14 @@ void MatterAdministratorCommissioningPluginServerInitCallback();
 void MatterOperationalCredentialsPluginServerInitCallback();
 void MatterGroupKeyManagementPluginServerInitCallback();
 void MatterTemperatureMeasurementPluginServerInitCallback();
+void MatterRelativeHumidityMeasurementPluginServerInitCallback();
 
 #define MATTER_PLUGINS_INIT                                                    \
   MatterIdentifyPluginServerInitCallback();                                    \
+  MatterGroupsPluginServerInitCallback();                                      \
+  MatterScenesPluginServerInitCallback();                                      \
   MatterOnOffPluginServerInitCallback();                                       \
+  MatterLevelControlPluginServerInitCallback();                                \
   MatterDescriptorPluginServerInitCallback();                                  \
   MatterAccessControlPluginServerInitCallback();                               \
   MatterBasicInformationPluginServerInitCallback();                            \
@@ -52,4 +59,5 @@ void MatterTemperatureMeasurementPluginServerInitCallback();
   MatterAdministratorCommissioningPluginServerInitCallback();                  \
   MatterOperationalCredentialsPluginServerInitCallback();                      \
   MatterGroupKeyManagementPluginServerInitCallback();                          \
-  MatterTemperatureMeasurementPluginServerInitCallback();
+  MatterTemperatureMeasurementPluginServerInitCallback();                      \
+  MatterRelativeHumidityMeasurementPluginServerInitCallback();

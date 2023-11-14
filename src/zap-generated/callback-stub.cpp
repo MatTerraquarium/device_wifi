@@ -48,8 +48,14 @@ void emberAfClusterInitCallback(EndpointId endpoint, ClusterId clusterId) {
   case app::Clusters::GroupKeyManagement::Id:
     emberAfGroupKeyManagementClusterInitCallback(endpoint);
     break;
+  case app::Clusters::Groups::Id:
+    emberAfGroupsClusterInitCallback(endpoint);
+    break;
   case app::Clusters::Identify::Id:
     emberAfIdentifyClusterInitCallback(endpoint);
+    break;
+  case app::Clusters::LevelControl::Id:
+    emberAfLevelControlClusterInitCallback(endpoint);
     break;
   case app::Clusters::NetworkCommissioning::Id:
     emberAfNetworkCommissioningClusterInitCallback(endpoint);
@@ -65,6 +71,12 @@ void emberAfClusterInitCallback(EndpointId endpoint, ClusterId clusterId) {
     break;
   case app::Clusters::OperationalCredentials::Id:
     emberAfOperationalCredentialsClusterInitCallback(endpoint);
+    break;
+  case app::Clusters::RelativeHumidityMeasurement::Id:
+    emberAfRelativeHumidityMeasurementClusterInitCallback(endpoint);
+    break;
+  case app::Clusters::Scenes::Id:
+    emberAfScenesClusterInitCallback(endpoint);
     break;
   case app::Clusters::SoftwareDiagnostics::Id:
     emberAfSoftwareDiagnosticsClusterInitCallback(endpoint);
@@ -120,7 +132,17 @@ emberAfGroupKeyManagementClusterInitCallback(EndpointId endpoint) {
   (void)endpoint;
 }
 void __attribute__((weak))
+emberAfGroupsClusterInitCallback(EndpointId endpoint) {
+  // To prevent warning
+  (void)endpoint;
+}
+void __attribute__((weak))
 emberAfIdentifyClusterInitCallback(EndpointId endpoint) {
+  // To prevent warning
+  (void)endpoint;
+}
+void __attribute__((weak))
+emberAfLevelControlClusterInitCallback(EndpointId endpoint) {
   // To prevent warning
   (void)endpoint;
 }
@@ -146,6 +168,16 @@ emberAfOnOffClusterInitCallback(EndpointId endpoint) {
 }
 void __attribute__((weak))
 emberAfOperationalCredentialsClusterInitCallback(EndpointId endpoint) {
+  // To prevent warning
+  (void)endpoint;
+}
+void __attribute__((weak))
+emberAfRelativeHumidityMeasurementClusterInitCallback(EndpointId endpoint) {
+  // To prevent warning
+  (void)endpoint;
+}
+void __attribute__((weak))
+emberAfScenesClusterInitCallback(EndpointId endpoint) {
   // To prevent warning
   (void)endpoint;
 }
