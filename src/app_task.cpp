@@ -100,6 +100,8 @@ static const struct gpio_dt_spec ls1 = GPIO_DT_SPEC_GET(DT_ALIAS(level_shifter1)
 static const struct pwm_dt_spec servo = PWM_DT_SPEC_GET(DT_ALIAS(servo));
 static const uint32_t min_pulse = DT_PROP(DT_ALIAS(servo), min_pulse);
 static const uint32_t max_pulse = DT_PROP(DT_ALIAS(servo), max_pulse);
+volatile uint32_t pulse = (uint32_t)(1050000);
+
 
 static const struct device *const dht11 = DEVICE_DT_GET(DT_ALIAS(dht11));
 static const struct device *const dht22 = DEVICE_DT_GET(DT_ALIAS(dht22));
@@ -110,6 +112,12 @@ static const struct  gpio_dt_spec rel1 = GPIO_DT_SPEC_GET(DT_ALIAS(relay1), gpio
 static const struct  gpio_dt_spec rel2 = GPIO_DT_SPEC_GET(DT_ALIAS(relay2), gpios);
 static const struct  gpio_dt_spec rel3 = GPIO_DT_SPEC_GET(DT_ALIAS(relay3), gpios);
 static const struct  gpio_dt_spec rel4 = GPIO_DT_SPEC_GET(DT_ALIAS(relay4), gpios);
+
+struct sensor_value last_temperature_1;
+struct sensor_value last_humidity_1;
+struct sensor_value last_temperature_2;
+struct sensor_value last_humidity_2;
+struct sensor_value last_temperature_3;
 
 /* The SensorTimerHandler callback is called periodically
  * every 2 seconds.
@@ -135,11 +143,12 @@ void SensorTimerHandler(k_timer *timer)
 /* Launch the feeder_ev event */
 void FeederMonoTimerHandler(k_timer *timer)
 {
-        AppEvent feeder_ev;
+        // AppEvent feeder_ev;
         
-        feeder_ev.Type = AppEventType::FeederDeactivate;
-        feeder_ev.Handler = AppTask::FeederDeactivateHandler;
-        AppTask::Instance().PostEvent(feeder_ev);
+        // feeder_ev.Type = AppEventType::FeederDeactivate;
+        // feeder_ev.Handler = AppTask::FeederDeactivateHandler;
+        // AppTask::Instance().PostEvent(feeder_ev);
+        chip::app::Clusters::OnOff::Attributes::OnOff::Set(/* endpoint ID */ 6, /* On/Off state */ false);
 }
 
 CHIP_ERROR AppTask::Init()
@@ -205,7 +214,7 @@ CHIP_ERROR AppTask::Init()
                 LOG_ERR("gpio_is_ready_dt(&ls1) failed");
                 return chip::System::MapErrorZephyr(ret);
         }
-        gpio_pin_configure_dt(&ls1, GPIO_OUTPUT_INACTIVE);
+        gpio_pin_configure_dt(&ls1, GPIO_OUTPUT_ACTIVE);
 
         /* Initialize SERVO */
         ret = device_is_ready(servo.dev);
@@ -241,104 +250,31 @@ CHIP_ERROR AppTask::Init()
                 LOG_ERR("gpio_is_ready_dt(&rel1) failed");
                 return chip::System::MapErrorZephyr(ret);
         }
-        gpio_pin_configure_dt(&rel1, GPIO_OUTPUT_INACTIVE);
+        gpio_pin_configure_dt(&rel1, GPIO_OUTPUT_HIGH);
 
         ret = gpio_is_ready_dt(&rel2);
         if (!ret) {
                 LOG_ERR("gpio_is_ready_dt(&rel2) failed");
                 return chip::System::MapErrorZephyr(ret);
         }
-        gpio_pin_configure_dt(&rel2, GPIO_OUTPUT_INACTIVE);
+        gpio_pin_configure_dt(&rel2, GPIO_OUTPUT_HIGH);
 
         ret = gpio_is_ready_dt(&rel3);
         if (!ret) {
                 LOG_ERR("gpio_is_ready_dt(&rel3) failed");
                 return chip::System::MapErrorZephyr(ret);
         }
-        gpio_pin_configure_dt(&rel3, GPIO_OUTPUT_INACTIVE);
+        gpio_pin_configure_dt(&rel3, GPIO_OUTPUT_HIGH);
         
         ret = gpio_is_ready_dt(&rel4);
         if (!ret) {
                 LOG_ERR("gpio_is_ready_dt(&rel4) failed");
                 return chip::System::MapErrorZephyr(ret);
         }
-        gpio_pin_configure_dt(&rel4, GPIO_OUTPUT_INACTIVE);
+        gpio_pin_configure_dt(&rel4, GPIO_OUTPUT_HIGH);
 
-#if 0 /* HARDWARE TEST */
-        /* Test Level Shifters */
+        /* Enable Level Shifter */
         gpio_pin_set_dt(&ls1, 1);
-
-        /* Test Realays */
-        gpio_pin_toggle_dt(&rel1);
-        gpio_pin_toggle_dt(&rel1);
-        gpio_pin_toggle_dt(&rel2);
-        gpio_pin_toggle_dt(&rel2);
-        gpio_pin_toggle_dt(&rel3);
-        gpio_pin_toggle_dt(&rel3);
-        gpio_pin_toggle_dt(&rel4);
-        gpio_pin_toggle_dt(&rel4);
-
-        /* Test Servo */
-        uint32_t pulse_width = (uint32_t)((min_pulse + max_pulse) / 2);
-        ret = pwm_set_pulse_dt(&servo, pulse_width);
-        k_sleep(K_SECONDS(1));
-        ret = pwm_set_pulse_dt(&servo, 0);
-
-        /* Test DHT11 */
-        struct sensor_value temperature_dht11;
-        struct sensor_value humidity_dht11;
-        k_sleep(K_SECONDS(1));
-        ret = sensor_sample_fetch(dht11);
-        if (ret != 0) {
-                LOG_ERR("Sensor fetch failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        ret = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature_dht11);
-        if (ret == 0) {
-                ret = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity_dht11);
-        }
-        if (ret != 0) {
-                LOG_ERR("get failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        double temperature_dht11_d = sensor_value_to_double(&temperature_dht11);
-        double humidity_dht11_d = sensor_value_to_double(&humidity_dht11);
-
-        /* Test DHT22 */
-        struct sensor_value temperature_dht22;
-        struct sensor_value humidity_dht22;
-        k_sleep(K_SECONDS(1));
-        ret = sensor_sample_fetch(dht22);
-        if (ret != 0) {
-                LOG_ERR("Sensor fetch failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        ret = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature_dht22);
-        if (ret == 0) {
-                ret = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity_dht22);
-        }
-        if (ret != 0) {
-                LOG_ERR("get failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        double temperature_dht22_d = sensor_value_to_double(&temperature_dht22);
-        double humidity_dht22_d = sensor_value_to_double(&humidity_dht22);
-
-        /* Test DS18B20 */
-        struct sensor_value temperature_ds18b20;
-        k_sleep(K_SECONDS(1));
-        ret = sensor_sample_fetch(ds18b20);
-                if (ret != 0) {
-                LOG_ERR("Sensor fetch failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        ret = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature_ds18b20);
-        if (ret != 0) {
-                LOG_ERR("get failed: %d\n", ret);
-                return chip::System::MapErrorZephyr(ret);
-        }
-        double temperature_ds18b20_d = sensor_value_to_double(&temperature_ds18b20);
-#endif /* HARDWARE TEST */
 
         /* Initialize function timer */
         k_timer_init(&sFunctionTimer, &AppTask::FunctionTimerTimeoutCallback, nullptr);
@@ -375,11 +311,18 @@ CHIP_ERROR AppTask::Init()
                 return err;
         }
 
+        /* Init to 0 global sensors values */
+        memset(&last_temperature_1, 0x00, sizeof(last_temperature_1));
+        memset(&last_humidity_1, 0x00, sizeof(last_humidity_1));
+        memset(&last_temperature_2, 0x00, sizeof(last_temperature_2));
+        memset(&last_humidity_2, 0x00, sizeof(last_humidity_2));
+        memset(&last_temperature_3, 0x00, sizeof(last_temperature_3));
+
         /* Init the Sensors Timer to periodically call the
-         * SensorTimerHandler every 2 seconds and start it */
+         * SensorTimerHandler every 5 seconds and start it */
         k_timer_init(&sSensorTimer, &SensorTimerHandler, nullptr);
         k_timer_user_data_set(&sSensorTimer, this);
-        k_timer_start(&sSensorTimer, K_MSEC(2000), K_MSEC(2000));
+        k_timer_start(&sSensorTimer, K_MSEC(5000), K_MSEC(5000));
 
         /* Init the Feeder Timer */
         k_timer_init(&sFeederMonoTimer, &FeederMonoTimerHandler, nullptr);
@@ -501,65 +444,49 @@ void AppTask::UpdateStatusLED()
 /* Turn on the hot lamp and update the endpoint status */
 void AppTask::HotLampActivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel1, 1);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 2, /* On/Off state */ true);
+        gpio_pin_set_dt(&rel1, 0);
 }
 
 /* Turn off the hot lamp and update the endpoint status */
 void AppTask::HotLampDeactivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel1, 0);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 2, /* On/Off state */ false);
+        gpio_pin_set_dt(&rel1, 1);
 }
 
 /* Turn on the uvb lamp and update the endpoint status */
 void AppTask::UvbLampActivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel2, 1);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 3, /* On/Off state */ true);
+        gpio_pin_set_dt(&rel2, 0);
 }
 
 /* Turn off the uvb lamp and update the endpoint status */
 void AppTask::UvbLampDeactivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel2, 0);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 3, /* On/Off state */ false);
+        gpio_pin_set_dt(&rel2, 1);
 }
 
 /* Turn on the water heater and update the endpoint status */
 void AppTask::HeaterActivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel3, 1);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 4, /* On/Off state */ true);
+        gpio_pin_set_dt(&rel3, 0);
 }
 
 /* Turn off the water heater and update the endpoint status */
 void AppTask::HeaterDeactivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel3, 0);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 4, /* On/Off state */ false);
+        gpio_pin_set_dt(&rel3, 1);
 }
 
 /* Turn on the filter pump and update the endpoint status */
 void AppTask::FilterActivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel4, 1);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 5, /* On/Off state */ true);
+        gpio_pin_set_dt(&rel4, 0);
 }
 
 /* Turn off the filter pump and update the endpoint status */
 void AppTask::FilterDeactivateHandler(const AppEvent &)
 {
-        gpio_pin_set_dt(&rel4, 0);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 5, /* On/Off state */ false);
+        gpio_pin_set_dt(&rel4, 1);
 }
 
 /* Start the pwm-servo, update the endpoint status
@@ -567,10 +494,8 @@ void AppTask::FilterDeactivateHandler(const AppEvent &)
 void AppTask::FeederActivateHandler(const AppEvent &)
 {
         int ret;
-        ret = pwm_set_pulse_dt(&servo, (uint32_t)((min_pulse + max_pulse) / 2));
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 6, /* On/Off state */ true);
-        k_timer_start(&sFeederMonoTimer, K_MSEC(3000), K_MSEC(0));
+        ret = pwm_set_pulse_dt(&servo, (uint32_t)(pulse));
+        k_timer_start(&sFeederMonoTimer, K_MSEC(2000), K_MSEC(200000));
 }
 
 /* Stop the pwm-servo, update the endpoint status
@@ -580,8 +505,6 @@ void AppTask::FeederDeactivateHandler(const AppEvent &)
         int ret;
         ret = pwm_set_pulse_dt(&servo, 0);
         k_timer_stop(&sFeederMonoTimer);
-        chip::app::Clusters::OnOff::Attributes::OnOff::Set(
-                /* endpoint ID */ 6, /* On/Off state */ false);
 }
 
 
@@ -649,29 +572,42 @@ void AppTask::DispatchEvent(const AppEvent &event)
 // the read relative humidity
 void AppTask::HotSensorMeasureHandler(const AppEvent &)
 {
-                int rc = sensor_sample_fetch(dht22);
-                if (rc != 0) {
-                        LOG_ERR("Sensor fetch failed: %d\n", rc);
-                        return;
+        int rc = sensor_sample_fetch(dht22);
+        if (rc != 0) {
+                LOG_ERR("Sensor DHT22 fetch failed: %d", rc);
+                if ((last_temperature_1.val1 != 0) && (last_humidity_1.val1 != 0)) {
+                        LOG_INF("Sensor DHT22 temp: %d, %d", last_temperature_1.val1, last_temperature_1.val2);
+                        LOG_INF("Sensor DHT22 hum: %d, %d", last_humidity_1.val1, last_humidity_1.val2);
                 }
-
+        } else {
                 struct sensor_value temperature;
                 struct sensor_value humidity;
-
                 rc = sensor_channel_get(dht22, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
                 if (rc == 0) {
                         rc = sensor_channel_get(dht22, SENSOR_CHAN_HUMIDITY, &humidity);
                 }
                 if (rc != 0) {
-                        LOG_ERR("get failed: %d\n", rc);
-                        return;
+                        LOG_ERR("get failed: %d", rc);
+                } else {
+                        last_temperature_1 = temperature;
+                        last_humidity_1 = humidity;
+                        LOG_INF("Sensor DHT22 temp: %d, %d", temperature.val1, temperature.val2);
+                        LOG_INF("Sensor DHT22 hum: %d, %d", humidity.val1, humidity.val2);
                 }
-                sensor_value_to_double(&temperature);
-                sensor_value_to_double(&humidity);
-                chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 7, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
-                chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 8, /* humidity */ int16_t(sensor_value_to_double(&humidity)));
+        }
+        if ((last_temperature_1.val1 == 0) && (last_humidity_1.val1 == 0)) {
+                if ((last_temperature_2.val1 != 0) && (last_humidity_2.val1 != 0)) {
+                        last_temperature_1.val1 = last_temperature_2.val1 + 2;
+                        last_humidity_1.val1 = last_humidity_2.val1 + 11;
+                        LOG_INF("Sensor DHT22 temp: %d, %d", last_temperature_1.val1, last_temperature_1.val2);
+                        LOG_INF("Sensor DHT22 hum: %d, %d", last_humidity_1.val1, last_humidity_1.val2);
+                }
+        }
+        
+        chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+        /* endpoint ID */ 7, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&last_temperature_1)));
+        chip::app::Clusters::RelativeHumidityMeasurement::Attributes::MeasuredValue::Set(
+        /* endpoint ID */ 8, /* humidity */ int16_t(sensor_value_to_double(&last_humidity_1)));
 }
 
 // This execute a fetch to the Cold Zone sensor and update
@@ -679,49 +615,52 @@ void AppTask::HotSensorMeasureHandler(const AppEvent &)
 // the read relative humidity
 void AppTask::ColdSensorMeasureHandler(const AppEvent &)
 {
-                int rc = sensor_sample_fetch(dht11);
-                if (rc != 0) {
-                        LOG_ERR("Sensor fetch failed: %d\n", rc);
-                        return;
+        int rc = sensor_sample_fetch(dht11);
+        if (rc != 0) {
+                LOG_ERR("Sensor DHT11 fetch failed: %d", rc);
+                if ((last_temperature_2.val1 != 0) && (last_humidity_2.val1 != 0)) {
+                        LOG_INF("Sensor DHT11 temp: %d, %d", last_temperature_2.val1, last_temperature_2.val2);
+                        LOG_INF("Sensor DHT11 hum: %d, %d", last_humidity_2.val1, last_humidity_2.val2);
                 }
-
+        } else {
                 struct sensor_value temperature;
                 struct sensor_value humidity;
-
                 rc = sensor_channel_get(dht11, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
                 if (rc == 0) {
                         rc = sensor_channel_get(dht11, SENSOR_CHAN_HUMIDITY, &humidity);
                 }
                 if (rc != 0) {
-                        LOG_ERR("get failed: %d\n", rc);
-                        return;
+                        LOG_ERR("get failed: %d", rc);
+                } else {
+                        last_temperature_2 = temperature;
+                        last_humidity_2 = humidity;
+                        LOG_INF("Sensor DHT11 temp: %d, %d", temperature.val1, temperature.val2);
+                        LOG_INF("Sensor DHT11 hum: %d, %d", humidity.val1, humidity.val2);
                 }
-                sensor_value_to_double(&temperature);
-                sensor_value_to_double(&humidity);
-                chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 9, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
-                chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 10, /* humidity */ int16_t(sensor_value_to_double(&humidity)));
+        }
+        chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+        /* endpoint ID */ 9, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&last_temperature_2)));
+        chip::app::Clusters::RelativeHumidityMeasurement::Attributes::MeasuredValue::Set(
+        /* endpoint ID */ 10, /* humidity */ int16_t(sensor_value_to_double(&last_humidity_2)));
 }
 
 // This execute a fetch to the Water sensor and update
 // the endpoint EP11 with the read temperature
 void AppTask::WaterTempSensorMeasureHandler(const AppEvent &)
 {
-                int rc = sensor_sample_fetch(ds18b20);
-                if (rc != 0) {
-                        LOG_ERR("Sensor fetch failed: %d\n", rc);
-                        return;
-                }
-
+        int rc = sensor_sample_fetch(ds18b20);
+        if (rc != 0) {
+                LOG_ERR("Sensor DS18B20 fetch failed: %d", rc);
+        } else {
                 struct sensor_value temperature;
-
                 rc = sensor_channel_get(ds18b20, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
                 if (rc != 0) {
-                        LOG_ERR("get failed: %d\n", rc);
-                        return;
+                        LOG_ERR("get failed: %d", rc);
+                } else {
+                        last_temperature_3 = temperature;
+                        LOG_INF("Sensor DS18B20 temp: %d, %d", temperature.val1, temperature.val2);
                 }
-                sensor_value_to_double(&temperature);
-                chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
-                /* endpoint ID */ 11, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&temperature)));
+        }
+        chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
+        /* endpoint ID */ 11, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&last_temperature_3)));
 }

@@ -47,22 +47,22 @@
 
 	relays {
         compatible = "gpio-leds";
-        relay_1: relay_01 {
+        relay_4: relay_04 {
             status = "okay";
             gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
             label = "Ralay 1";
         };
-        relay_2: relay_02 {
+        relay_3: relay_03 {
             status = "okay";
             gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
             label = "Ralay 2";
         };
-        relay_3: relay_03 {
+        relay_2: relay_02 {
             status = "okay";
             gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
             label = "Ralay 3";
         };
-        relay_4: relay_04 {
+        relay_1: relay_01 {
             status = "okay";
             gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
             label = "Ralay 4";

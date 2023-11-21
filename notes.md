@@ -13,9 +13,28 @@ python3 ~/ncs/v2.4.2/modules/lib/matter/scripts/tools/zap/generate.py ~/Projects
 sudo rm -rf /tmp/chip_*
 
 # COMMISION DEV IN MATTER WIFI
-~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug pairing ble-wifi 2 FibraFelice 0a1b2c3d4e 20202021 3840
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug pairing ble-wifi 1 WiFi-SSID WiFi-PASS 20202021 3840
 
 # CHIP-TOOL COMMANDS
-~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 2 1
-~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug temperaturemeasurement read measured-value 2 1
-~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 2 1
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 1 2
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 1 2
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 1 3
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 1 3
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 1 4
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 1 4
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 1 5
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 1 5
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff on 1 6
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug onoff off 1 6
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug temperaturemeasurement read measured-value 1 7
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug relativehumiditymeasurement read measured-value 1 8
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug temperaturemeasurement read measured-value 1 9
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug relativehumiditymeasurement read measured-value 1 10
+
+~/Projects/MATTER_TOOLS/chip-tool-linux_2.4.1_x64/chip-tool-debug temperaturemeasurement read measured-value 1 11

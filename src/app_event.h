@@ -41,11 +41,6 @@ struct AppEvent {
 		struct {
 			LEDWidget *LedWidget;
 		} UpdateLedStateEvent;
-		
-		struct {
-			uint8_t PinNo;
-			uint8_t Action;
-		} UpdateHotLampEvent;
 	};
 
 	AppEventType Type{ AppEventType::None };
