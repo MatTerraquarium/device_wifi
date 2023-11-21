@@ -28,20 +28,20 @@
         level_shifter1: level_shifter_1 {
             status = "okay";
 			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-            label = "Level Shifter 2 (Relays) - Output Enable";
+            label = "Level Shifter - Output Enable";
         };
     };
 
 	dht110: dht11_0 {
 		compatible = "aosong,dht";
 		status = "okay";
-		dio-gpios = <&gpio0 26 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		dio-gpios = <&gpio0 26 (GPIO_OPEN_DRAIN | GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 	};
     
     dht220: dht22_0 {
         compatible = "aosong,dht";
         status = "okay";
-		dio-gpios = <&gpio0 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		dio-gpios = <&gpio0 25 (GPIO_OPEN_DRAIN | GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
         dht22;
     };
 
@@ -50,22 +50,22 @@
         relay_4: relay_04 {
             status = "okay";
             gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
-            label = "Ralay 1";
+            label = "Ralay 4";
         };
         relay_3: relay_03 {
             status = "okay";
             gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-            label = "Ralay 2";
+            label = "Ralay 3";
         };
         relay_2: relay_02 {
             status = "okay";
             gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
-            label = "Ralay 3";
+            label = "Ralay 2";
         };
         relay_1: relay_01 {
             status = "okay";
             gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-            label = "Ralay 4";
+            label = "Ralay 1";
         };
 	};
 
