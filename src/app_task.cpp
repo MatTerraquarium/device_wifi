@@ -113,6 +113,7 @@ static const struct  gpio_dt_spec rel2 = GPIO_DT_SPEC_GET(DT_ALIAS(relay2), gpio
 static const struct  gpio_dt_spec rel3 = GPIO_DT_SPEC_GET(DT_ALIAS(relay3), gpios);
 static const struct  gpio_dt_spec rel4 = GPIO_DT_SPEC_GET(DT_ALIAS(relay4), gpios);
 
+/* Global data of last measures */
 struct sensor_value last_temperature_1;
 struct sensor_value last_humidity_1;
 struct sensor_value last_temperature_2;
@@ -120,7 +121,7 @@ struct sensor_value last_humidity_2;
 struct sensor_value last_temperature_3;
 
 /* The SensorTimerHandler callback is called periodically
- * every 2 seconds.
+ * every 5 seconds.
  * In this callback will be sent 3 events to the main app
  * handler, ones per sensor. */
 void SensorTimerHandler(k_timer *timer)
@@ -140,14 +141,9 @@ void SensorTimerHandler(k_timer *timer)
         AppTask::Instance().PostEvent(water_ev);
 }
 
-/* Launch the feeder_ev event */
+/* At activation timeout the feeder change it's state to Off */
 void FeederMonoTimerHandler(k_timer *timer)
 {
-        // AppEvent feeder_ev;
-        
-        // feeder_ev.Type = AppEventType::FeederDeactivate;
-        // feeder_ev.Handler = AppTask::FeederDeactivateHandler;
-        // AppTask::Instance().PostEvent(feeder_ev);
         chip::app::Clusters::OnOff::Attributes::OnOff::Set(/* endpoint ID */ 6, /* On/Off state */ false);
 }
 
@@ -441,56 +437,55 @@ void AppTask::UpdateStatusLED()
         }
 }
 
-/* Turn on the hot lamp and update the endpoint status */
+/* Turn on the hot lamp */
 void AppTask::HotLampActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel1, 0);
 }
 
-/* Turn off the hot lamp and update the endpoint status */
+/* Turn off the hot lamp */
 void AppTask::HotLampDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel1, 1);
 }
 
-/* Turn on the uvb lamp and update the endpoint status */
+/* Turn on the uvb lamp */
 void AppTask::UvbLampActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel2, 0);
 }
 
-/* Turn off the uvb lamp and update the endpoint status */
+/* Turn off the uvb lamp */
 void AppTask::UvbLampDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel2, 1);
 }
 
-/* Turn on the water heater and update the endpoint status */
+/* Turn on the water heater */
 void AppTask::HeaterActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel3, 0);
 }
 
-/* Turn off the water heater and update the endpoint status */
+/* Turn off the water heater */
 void AppTask::HeaterDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel3, 1);
 }
 
-/* Turn on the filter pump and update the endpoint status */
+/* Turn on the filter pump */
 void AppTask::FilterActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel4, 0);
 }
 
-/* Turn off the filter pump and update the endpoint status */
+/* Turn off the filter pump */
 void AppTask::FilterDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel4, 1);
 }
 
-/* Start the pwm-servo, update the endpoint status
- * and start the sFeederMonoTimer software timer */
+/* Start the pwm-servo and start the sFeederMonoTimer software timer */
 void AppTask::FeederActivateHandler(const AppEvent &)
 {
         int ret;
@@ -498,8 +493,7 @@ void AppTask::FeederActivateHandler(const AppEvent &)
         k_timer_start(&sFeederMonoTimer, K_MSEC(2000), K_MSEC(200000));
 }
 
-/* Stop the pwm-servo, update the endpoint status
- * and stop the sFeederMonoTimer software timer */
+/* Stop the pwm-servo and stop the sFeederMonoTimer software timer */
 void AppTask::FeederDeactivateHandler(const AppEvent &)
 {
         int ret;
@@ -593,14 +587,6 @@ void AppTask::HotSensorMeasureHandler(const AppEvent &)
                         last_humidity_1 = humidity;
                         LOG_INF("Sensor DHT22 temp: %d, %d", temperature.val1, temperature.val2);
                         LOG_INF("Sensor DHT22 hum: %d, %d", humidity.val1, humidity.val2);
-                }
-        }
-        if ((last_temperature_1.val1 == 0) && (last_humidity_1.val1 == 0)) {
-                if ((last_temperature_2.val1 != 0) && (last_humidity_2.val1 != 0)) {
-                        last_temperature_1.val1 = last_temperature_2.val1 + 2;
-                        last_humidity_1.val1 = last_humidity_2.val1 + 11;
-                        LOG_INF("Sensor DHT22 temp: %d, %d", last_temperature_1.val1, last_temperature_1.val2);
-                        LOG_INF("Sensor DHT22 hum: %d, %d", last_humidity_1.val1, last_humidity_1.val2);
                 }
         }
         
