@@ -424,113 +424,6 @@ void DispatchServerCommand(CommandHandler *apCommandObj,
 
 } // namespace Identify
 
-namespace LevelControl {
-
-void DispatchServerCommand(CommandHandler *apCommandObj,
-                           const ConcreteCommandPath &aCommandPath,
-                           TLV::TLVReader &aDataTlv) {
-  CHIP_ERROR TLVError = CHIP_NO_ERROR;
-  bool wasHandled = false;
-  {
-    switch (aCommandPath.mCommandId) {
-    case Commands::MoveToLevel::Id: {
-      Commands::MoveToLevel::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterMoveToLevelCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::Move::Id: {
-      Commands::Move::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterMoveCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::Step::Id: {
-      Commands::Step::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterStepCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::Stop::Id: {
-      Commands::Stop::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterStopCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::MoveToLevelWithOnOff::Id: {
-      Commands::MoveToLevelWithOnOff::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterMoveToLevelWithOnOffCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::MoveWithOnOff::Id: {
-      Commands::MoveWithOnOff::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterMoveWithOnOffCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::StepWithOnOff::Id: {
-      Commands::StepWithOnOff::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterStepWithOnOffCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    case Commands::StopWithOnOff::Id: {
-      Commands::StopWithOnOff::DecodableType commandData;
-      TLVError = DataModel::Decode(aDataTlv, commandData);
-      if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfLevelControlClusterStopWithOnOffCallback(
-            apCommandObj, aCommandPath, commandData);
-      }
-      break;
-    }
-    default: {
-      // Unrecognized command ID, error status will apply.
-      apCommandObj->AddStatus(
-          aCommandPath,
-          Protocols::InteractionModel::Status::UnsupportedCommand);
-      ChipLogError(Zcl,
-                   "Unknown command " ChipLogFormatMEI
-                   " for cluster " ChipLogFormatMEI,
-                   ChipLogValueMEI(aCommandPath.mCommandId),
-                   ChipLogValueMEI(aCommandPath.mClusterId));
-      return;
-    }
-    }
-  }
-
-  if (CHIP_NO_ERROR != TLVError || !wasHandled) {
-    apCommandObj->AddStatus(
-        aCommandPath, Protocols::InteractionModel::Status::InvalidCommand);
-    ChipLogProgress(Zcl,
-                    "Failed to dispatch command, TLVError=%" CHIP_ERROR_FORMAT,
-                    TLVError.Format());
-  }
-}
-
-} // namespace LevelControl
-
 namespace OtaSoftwareUpdateRequestor {
 
 void DispatchServerCommand(CommandHandler *apCommandObj,
@@ -947,10 +840,6 @@ void DispatchSingleClusterCommand(const ConcreteCommandPath &aCommandPath,
   case Clusters::Identify::Id:
     Clusters::Identify::DispatchServerCommand(apCommandObj, aCommandPath,
                                               aReader);
-    break;
-  case Clusters::LevelControl::Id:
-    Clusters::LevelControl::DispatchServerCommand(apCommandObj, aCommandPath,
-                                                  aReader);
     break;
   case Clusters::OtaSoftwareUpdateRequestor::Id:
     Clusters::OtaSoftwareUpdateRequestor::DispatchServerCommand(

@@ -84,6 +84,9 @@
 #include <platform/nrfconnect/DeviceInstanceInfoProviderImpl.h>
 #endif
 
+//using namespace ::chip;
+//using namespace ::chip::app::Clusters;
+
 struct k_timer;
 
 class AppTask {
@@ -95,8 +98,11 @@ public:
         };
 
         CHIP_ERROR StartApp();
-
+        void UpdateClusterState(chip::EndpointId endpoint, bool storedValue);
         static void PostEvent(const AppEvent &event);
+
+        static void LightingLedActivateHandler(const AppEvent &);
+        static void LightingLedDeactivateHandler(const AppEvent &);
 
         static void HotSensorMeasureHandler(const AppEvent &);
         static void ColdSensorMeasureHandler(const AppEvent &);

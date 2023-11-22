@@ -6,11 +6,14 @@
 
 #include "app_task.h"
 #include "app_config.h"
+//#include "fabric_table_delegate.h"
 #include "led_util.h"
+#include "board_util.h"
 
 #include <platform/CHIPDeviceLayer.h>
 
-#include "board_util.h"
+#include <app-common/zap-generated/attributes/Accessors.h>
+//#include <app/DeferredAttributePersistenceProvider.h>
 #include <app/server/OnboardingCodesUtil.h>
 #include <app/server/Server.h>
 #include <credentials/DeviceAttestationCredsProvider.h>
@@ -37,7 +40,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/pwm.h>
-#include <app-common/zap-generated/attributes/Accessors.h>
 
 LOG_MODULE_DECLARE(app, CONFIG_CHIP_APP_LOG_LEVEL);
 
@@ -55,6 +57,8 @@ K_MSGQ_DEFINE(sAppEventQueue, sizeof(AppEvent), kAppEventQueueSize, alignof(AppE
 k_timer sFunctionTimer;
 
 LEDWidget sStatusLED;
+LEDWidget sLightingLED;
+
 #if NUMBER_OF_LEDS == 2
 FactoryResetLEDsWrapper<1> sFactoryResetLEDs{ { FACTORY_RESET_SIGNAL_LED } };
 #else
@@ -194,8 +198,10 @@ CHIP_ERROR AppTask::Init()
         LEDWidget::SetStateUpdateCallback(LEDStateUpdateHandler);
 
         sStatusLED.Init(SYSTEM_STATE_LED);
-
         UpdateStatusLED();
+
+        sLightingLED.Init(LIGHTING_STATE_LED);
+        sLightingLED.Set(false);
 
         /* Initialize buttons */
         int ret = dk_buttons_init(ButtonEventHandler);
@@ -437,6 +443,18 @@ void AppTask::UpdateStatusLED()
         }
 }
 
+/* Turn on the dk led2 */
+void AppTask::LightingLedActivateHandler(const AppEvent &)
+{
+        sLightingLED.Set(true);
+}
+
+/* Turn off the dk led2 */
+void AppTask::LightingLedDeactivateHandler(const AppEvent &)
+{
+        sLightingLED.Set(false);
+}
+
 /* Turn on the hot lamp */
 void AppTask::HotLampActivateHandler(const AppEvent &)
 {
@@ -650,3 +668,16 @@ void AppTask::WaterTempSensorMeasureHandler(const AppEvent &)
         chip::app::Clusters::TemperatureMeasurement::Attributes::MeasuredValue::Set(
         /* endpoint ID */ 11, /* temperature in 0.01*C */ int16_t(sensor_value_to_double(&last_temperature_3)));
 }
+
+#if 0
+void AppTask::UpdateClusterState(chip::EndpointId endpoint, bool storedValue)
+{
+	SystemLayer().ScheduleLambda([this] {
+		/* write the new on/off value */
+                EmberAfStatus status = Clusters::OnOff::Attributes::OnOff::Set(endpoint, storedValue);
+		if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+	});
+}
+#endif

@@ -12,20 +12,29 @@
 
 class LEDWidget;
 
-enum class AppEventType : uint8_t { None = 0, Button, ButtonPushed, ButtonReleased, Timer, UpdateLedState, 
-									HotLampActivate, 
-									HotLampDeactivate, 
-									UvbLampActivate, 
-									UvbLampDeactivate, 
-									HeaterActivate, 
-									HeaterDeactivate, 
-									FilterActivate, 
-									FilterDeactivate, 
-									FeederActivate, 
-									FeederDeactivate, 
-									HotSensorMeasure, 
-									ColdSensorMeasure, 
-									WaterTempSensorMeasure, };
+enum class AppEventType : uint8_t { 
+	None = 0, 
+	Button, 
+	ButtonPushed, 
+	ButtonReleased, 
+	Timer, 
+	UpdateLedState, 
+	LightingLedActivate, 
+	LightingLedDeactivate, 
+	HotLampActivate, 
+	HotLampDeactivate, 
+	UvbLampActivate, 
+	UvbLampDeactivate, 
+	HeaterActivate, 
+	HeaterDeactivate, 
+	FilterActivate, 
+	FilterDeactivate, 
+	FeederActivate, 
+	FeederDeactivate, 
+	HotSensorMeasure, 
+	ColdSensorMeasure, 
+	WaterTempSensorMeasure, 
+};
 
 enum class FunctionEvent : uint8_t { NoneSelected = 0, FactoryReset };
 
