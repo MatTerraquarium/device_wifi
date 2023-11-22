@@ -246,3 +246,29 @@ void emberAfOnOffClusterInitCallback(EndpointId endpoint)
         AppTask::Instance().UpdateClusterState(endpoint, storedValue);
 }
 #endif
+
+void emberAfOnOffClusterInitCallback(EndpointId endpoint)
+{
+        AppEvent event;
+	EmberAfStatus status;
+	bool storedValue;
+
+        /* DK LED */
+        if (endpoint == 1) {
+                /* Read storedValue on/off value */
+                status = Attributes::OnOff::Get(endpoint, &storedValue);
+                if (status == EMBER_ZCL_STATUS_SUCCESS) {
+                        /* Set actual state to the cluster state that was last persisted */
+                        if (storedValue) {
+                                event.Type = AppEventType::LightingLedActivate;
+                                event.Handler = AppTask::LightingLedActivateHandler;
+                        } else {
+                                event.Type = AppEventType::LightingLedDeactivate;
+                                event.Handler = AppTask::LightingLedDeactivateHandler;
+                        }
+                }
+        }
+
+        AppTask::Instance().PostEvent(event);
+        AppTask::Instance().UpdateClusterState();
+}

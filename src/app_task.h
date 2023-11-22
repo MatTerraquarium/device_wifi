@@ -98,7 +98,7 @@ public:
         };
 
         CHIP_ERROR StartApp();
-        void UpdateClusterState(chip::EndpointId endpoint, bool storedValue);
+        void UpdateClusterState();
         static void PostEvent(const AppEvent &event);
 
         static void LightingLedActivateHandler(const AppEvent &);
@@ -118,6 +118,13 @@ public:
         static void FilterDeactivateHandler(const AppEvent &);
         static void FeederActivateHandler(const AppEvent &);
         static void FeederDeactivateHandler(const AppEvent &);
+
+        static bool mLightingLedState;
+        static bool mHoltLampState;
+        static bool mUvbLampState;
+        static bool mHeaterState;
+        static bool mFilterState;
+        static bool mFeederState;
 
 private:
         CHIP_ERROR Init();

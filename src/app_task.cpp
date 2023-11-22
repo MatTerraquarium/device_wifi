@@ -313,6 +313,13 @@ CHIP_ERROR AppTask::Init()
                 return err;
         }
 
+        mLightingLedState = false;
+        mHoltLampState = false;
+        mUvbLampState = false;
+        mHeaterState = false;
+        mFilterState = false;
+        mFeederState = false;
+
         /* Init to 0 global sensors values */
         memset(&last_temperature_1, 0x00, sizeof(last_temperature_1));
         memset(&last_humidity_1, 0x00, sizeof(last_humidity_1));
@@ -447,60 +454,70 @@ void AppTask::UpdateStatusLED()
 void AppTask::LightingLedActivateHandler(const AppEvent &)
 {
         sLightingLED.Set(true);
+        mLightingLedState = true;
 }
 
 /* Turn off the dk led2 */
 void AppTask::LightingLedDeactivateHandler(const AppEvent &)
 {
         sLightingLED.Set(false);
+        mLightingLedState = false;
 }
 
 /* Turn on the hot lamp */
 void AppTask::HotLampActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel1, 0);
+        mHoltLampState = true;
 }
 
 /* Turn off the hot lamp */
 void AppTask::HotLampDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel1, 1);
+        mHoltLampState = false;
 }
 
 /* Turn on the uvb lamp */
 void AppTask::UvbLampActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel2, 0);
+        mUvbLampState = true;
 }
 
 /* Turn off the uvb lamp */
 void AppTask::UvbLampDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel2, 1);
+        mUvbLampState = false;
 }
 
 /* Turn on the water heater */
 void AppTask::HeaterActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel3, 0);
+        mHeaterState = true;
 }
 
 /* Turn off the water heater */
 void AppTask::HeaterDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel3, 1);
+        mHeaterState = false;
 }
 
 /* Turn on the filter pump */
 void AppTask::FilterActivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel4, 0);
+        mFilterState = true;
 }
 
 /* Turn off the filter pump */
 void AppTask::FilterDeactivateHandler(const AppEvent &)
 {
         gpio_pin_set_dt(&rel4, 1);
+        mFilterState = false;
 }
 
 /* Start the pwm-servo and start the sFeederMonoTimer software timer */
@@ -509,6 +526,7 @@ void AppTask::FeederActivateHandler(const AppEvent &)
         int ret;
         ret = pwm_set_pulse_dt(&servo, (uint32_t)(pulse));
         k_timer_start(&sFeederMonoTimer, K_MSEC(2000), K_MSEC(200000));
+        mFeederState = true;
 }
 
 /* Stop the pwm-servo and stop the sFeederMonoTimer software timer */
@@ -517,6 +535,7 @@ void AppTask::FeederDeactivateHandler(const AppEvent &)
         int ret;
         ret = pwm_set_pulse_dt(&servo, 0);
         k_timer_stop(&sFeederMonoTimer);
+        mFeederState = false;
 }
 
 
@@ -681,3 +700,34 @@ void AppTask::UpdateClusterState(chip::EndpointId endpoint, bool storedValue)
 	});
 }
 #endif
+
+void AppTask::UpdateClusterState()
+{
+        SystemLayer().ScheduleLambda([this] {
+                EmberAfStatus status;
+                status = Clusters::OnOff::Attributes::OnOff::Set(1, mLightingLedState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+                status = Clusters::OnOff::Attributes::OnOff::Set(2, mHoltLampState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+                status = Clusters::OnOff::Attributes::OnOff::Set(3, mUvbLampState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+                status = Clusters::OnOff::Attributes::OnOff::Set(4, mHeaterState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+                status = Clusters::OnOff::Attributes::OnOff::Set(5, mFilterState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+                status = Clusters::OnOff::Attributes::OnOff::Set(6, mFeederState);
+                if (status != EMBER_ZCL_STATUS_SUCCESS) {
+			LOG_ERR("Updating on/off cluster failed: %x", status);
+		}
+        });
+}
