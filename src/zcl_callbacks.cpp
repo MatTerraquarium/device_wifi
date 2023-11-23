@@ -130,7 +130,6 @@ void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & 
         AppTask::Instance().PostEvent(event);
 }
 
-#if 0
 /** @brief OnOff Cluster Init
  *
  * This function is called when a specific cluster is initialized. It gives the
@@ -239,32 +238,6 @@ void emberAfOnOffClusterInitCallback(EndpointId endpoint)
                         } else {
                                 event.Type = AppEventType::FeederDeactivate;
                                 event.Handler = AppTask::FeederDeactivateHandler;
-                        }
-                }
-        }
-        AppTask::Instance().PostEvent(event);
-        AppTask::Instance().UpdateClusterState(endpoint, storedValue);
-}
-#endif
-
-void emberAfOnOffClusterInitCallback(EndpointId endpoint)
-{
-        AppEvent event;
-	EmberAfStatus status;
-	bool storedValue;
-
-        /* DK LED */
-        if (endpoint == 1) {
-                /* Read storedValue on/off value */
-                status = Attributes::OnOff::Get(endpoint, &storedValue);
-                if (status == EMBER_ZCL_STATUS_SUCCESS) {
-                        /* Set actual state to the cluster state that was last persisted */
-                        if (storedValue) {
-                                event.Type = AppEventType::LightingLedActivate;
-                                event.Handler = AppTask::LightingLedActivateHandler;
-                        } else {
-                                event.Type = AppEventType::LightingLedDeactivate;
-                                event.Handler = AppTask::LightingLedDeactivateHandler;
                         }
                 }
         }

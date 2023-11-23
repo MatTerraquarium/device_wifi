@@ -119,13 +119,6 @@ public:
         static void FeederActivateHandler(const AppEvent &);
         static void FeederDeactivateHandler(const AppEvent &);
 
-        static bool mLightingLedState;
-        static bool mHoltLampState;
-        static bool mUvbLampState;
-        static bool mHeaterState;
-        static bool mFilterState;
-        static bool mFeederState;
-
 private:
         CHIP_ERROR Init();
 
@@ -145,6 +138,13 @@ private:
 
         FunctionEvent mFunction = FunctionEvent::NoneSelected;
         bool mFunctionTimerActive = false;
+
+        bool mLightingLedState = false;
+        bool mHoltLampState = false;
+        bool mUvbLampState = false;
+        bool mHeaterState = false;
+        bool mFilterState = false;
+        bool mFeederState = false;
 
 #if CONFIG_CHIP_FACTORY_DATA
         chip::DeviceLayer::FactoryDataProvider<chip::DeviceLayer::InternalFlashFactoryData> mFactoryDataProvider;
